@@ -1,112 +1,112 @@
 # Cloudflare Gateway Pi-hole Scripts (CGPS)
 
-![Cloudflare Gateway Analytics screenshot showing a thousand blocked DNS requests](.github/images/gateway_analytics.png)
+![Cloudflare Gateway Analytics 截圖，顯示已封鎖上千筆 DNS 請求](.github/images/gateway_analytics.png)
 
-Cloudflare Gateway allows you to create custom rules to filter HTTP, DNS, and network traffic based on your firewall policies. This is a collection of scripts that can be used to get a similar experience as if you were using Pi-hole, but with Cloudflare Gateway - so no servers to maintain or need to buy a Raspberry Pi!
+Cloudflare Gateway 允許您根據防火牆政策建立自訂規則來過濾 HTTP、DNS 和網路流量。這是一系列腳本集合，讓您可以獲得類似 Pi-hole 的體驗，但使用的是 Cloudflare Gateway——因此不需要維護伺服器，也不需要購買 Raspberry Pi！
 
-## About the individual scripts
+## 各腳本說明
 
-- `cf_list_delete.js` - Deletes all lists created by CGPS from Cloudflare Gateway. This is useful for subsequent runs.
-- `cf_list_create.js` - Takes a blocklist.txt file containing domains and creates lists in Cloudflare Gateway
-- `cf_gateway_rule_create.js` - Creates a Cloudflare Gateway rule to block all traffic if it matches the lists created by CGPS.
-- `cf_gateway_rule_delete.js` - Deletes the Cloudflare Gateway rule created by CGPS. Useful for subsequent runs.
-- `download_lists.js` - Initiates blocklist and whitelist download.
+- `cf_list_delete.js` - 從 Cloudflare Gateway 刪除所有由 CGPS 建立的清單。這對於後續執行很有用。
+- `cf_list_create.js` - 讀取包含網域的 blocklist.txt 檔案，並在 Cloudflare Gateway 中建立清單
+- `cf_gateway_rule_create.js` - 建立 Cloudflare Gateway 規則，如果流量符合 CGPS 建立的清單則予以封鎖。
+- `cf_gateway_rule_delete.js` - 刪除由 CGPS 建立的 Cloudflare Gateway 規則。對於後續執行很有用。
+- `download_lists.js` - 啟動封鎖清單和白名單的下載。
 
-## Features
+## 功能特色
 
-- Support for basic hosts files
-- Full support for domain lists
-- Automatically cleans up filter lists: removes duplicates, invalid domains, comments and more
-- Works **fully unattended**
-- **Allowlist support**, allowing you to prevent false positives and breakage by forcing trusted domains to always be unblocked.
-- Experimental **SNI-based filtering** that works independently of DNS settings, preventing unauthorized or malicious DNS changes from bypassing the filter.
-- Optional health check: Sends a ping request ensuring continuous monitoring and alerting for the workflow execution, or messages a Discord webhook with progress.
+- 支援基本的 hosts 檔案
+- 完整支援網域清單
+- 自動清理過濾清單：移除重複項、無效網域、註解等
+- 可**完全自動化執行**
+- **白名單支援**，讓您可以防止誤判和功能異常，強制信任的網域永遠不被封鎖。
+- 實驗性的 **SNI 過濾**功能，獨立於 DNS 設定運作，防止未經授權或惡意的 DNS 變更繞過過濾器。
+- 選用的健康檢查：發送 ping 請求以確保工作流程執行的持續監控和警報，或透過 Discord webhook 發送進度通知。
 
-## Usage
+## 使用方式
 
-### Prerequisites
+### 先決條件
 
-1. Node.js installed on your machine
-2. Cloudflare [Zero Trust](https://one.dash.cloudflare.com/) account - the Free plan is enough. Use the Cloudflare [documentation](https://developers.cloudflare.com/cloudflare-one/) for details.
-3. Cloudflare email, API **token** with Zero Trust read and edit permissions, and account ID. See [here](https://github.com/mrrfv/cloudflare-gateway-pihole-scripts/blob/main/extended_guide.md#cloudflare_api_token) for more information about how to create the token.
-4. A file containing the domains you want to block - **max 300,000 domains for the free plan** - in the working directory named `blocklist.txt`. Mullvad provides awesome [DNS blocklists](https://github.com/mullvad/dns-blocklists) that work well with this project. A script that downloads recommended blocklists, `download_lists.js`, is included.
-5. Optional: You can whitelist domains by putting them in a file `allowlist.txt`. You can also use the `get_recomended_whitelist.sh` Bash script to get the recommended whitelists.
-6. Optional: A Discord (or similar) webhook URL to send notifications to.
+1. 您的機器上已安裝 Node.js
+2. Cloudflare [Zero Trust](https://one.dash.cloudflare.com/) 帳戶 - 免費方案即可。詳情請參閱 Cloudflare [說明文件](https://developers.cloudflare.com/cloudflare-one/)。
+3. Cloudflare 電子郵件、具有 Zero Trust 讀取和編輯權限的 API **權杖**，以及帳戶 ID。有關如何建立權杖的更多資訊，請參閱[這裡](https://github.com/mrrfv/cloudflare-gateway-pihole-scripts/blob/main/extended_guide.md#cloudflare_api_token)。
+4. 一個包含您想封鎖網域的檔案 - 免費方案**最多 300,000 個網域** - 放在工作目錄中並命名為 `blocklist.txt`。Mullvad 提供了很棒的 [DNS 封鎖清單](https://github.com/mullvad/dns-blocklists)，非常適合此專案使用。專案內附一個下載推薦封鎖清單的腳本 `download_lists.js`。
+5. 選用：您可以將網域放入 `allowlist.txt` 檔案中設為白名單。您也可以使用 `get_recomended_whitelist.sh` Bash 腳本來取得推薦的白名單。
+6. 選用：一個 Discord（或類似服務）的 webhook URL 用於發送通知。
 
-### Running locally
+### 本地執行
 
-1. Clone this repository.
-2. Run `npm install` to install dependencies.
-3. Copy `.env.example` to `.env` and fill in the values.
-4. If you haven't downloaded any filters yourself, run the `node download_lists.js` command to download recommended filter lists (OISD Small and AdAway; about 50 000 domains).
-5. Run `node cf_list_create.js` to create the lists in Cloudflare Gateway. This will take a while.
-6. Run `node cf_gateway_rule_create.js` to create the firewall rule in Cloudflare Gateway.
-7. Profit! Time is money after all. You can update the lists by repeating steps 4, 5 and 6.
+1. 複製此儲存庫。
+2. 執行 `npm install` 安裝相依套件。
+3. 將 `.env.example` 複製為 `.env` 並填入相關數值。
+4. 如果您尚未自行下載任何過濾清單，請執行 `node download_lists.js` 指令下載推薦的過濾清單（OISD Small 和 AdAway；約 50,000 個網域）。
+5. 執行 `node cf_list_create.js` 在 Cloudflare Gateway 中建立清單。這會花一些時間。
+6. 執行 `node cf_gateway_rule_create.js` 在 Cloudflare Gateway 中建立防火牆規則。
+7. 大功告成！畢竟時間就是金錢。您可以重複步驟 4、5 和 6 來更新清單。
 
-### Running in GitHub Actions
+### 在 GitHub Actions 中執行
 
-These scripts can be run using GitHub Actions so your filters will be automatically updated and pushed to Cloudflare Gateway. This is useful if you are using a frequently updated blocklist.
+這些腳本可以使用 GitHub Actions 執行，讓您的過濾清單自動更新並推送至 Cloudflare Gateway。如果您使用的是經常更新的封鎖清單，這會很有用。
 
-Please note that:
-- GitHub Actions wasn't intended to be used for this purpose, therefore the local options are recommended.
-- the GitHub Action downloads the recommended blocklists and whitelist by default. You can change this behavior by setting Actions variables.
+請注意：
+- GitHub Actions 原本並非設計用於此目的，因此建議使用本地執行方式。
+- GitHub Action 預設會下載推薦的封鎖清單和白名單。您可以透過設定 Actions 變數來變更此行為。
 
-1. Create a new empty, private repository. Forking or public repositories are discouraged, but supported - although the script never leaks your API keys and GitHub Actions secrets are automatically redacted from the logs, it's better to be safe than sorry. There is **no need to use the "Sync fork" button** if you're doing that! The GitHub Action downloads the latest code regardless of what's in your forked repository.
-2. Create the following GitHub Actions secrets in your repository settings:
-   - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API Token with Zero Trust read and edit permissions
-   - `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID
-   - `CLOUDFLARE_LIST_ITEM_LIMIT`: The maximum number of blocked domains allowed for your Cloudflare Zero Trust plan. Default to 300,000. Optional if you are using the free plan.
-   - `PING_URL`: /Optional/ The HTTP(S) URL to ping (using curl) after the GitHub Action has successfully updated your filters. Useful for monitoring.
-   - `DISCORD_WEBHOOK_URL`: /Optional/ The Discord (or similar) webhook URL to send notifications to. Good for monitoring as well.
-3. Create the following GitHub Actions variables in your repository settings if you desire:
-   - `ALLOWLIST_URLS`: Uses your own allowlists. One URL per line. Recommended allowlists will be used if this variable is not provided.
-   - `BLOCKLIST_URLS`: Uses your own blocklists. One URL per line. Recommended blocklists will be used if this variable is not provided.
-   - `BLOCK_PAGE_ENABLED`: Enable showing block page if host is blocked.
-4. Create a new file in the repository named `.github/workflows/main.yml` with the contents of `auto_update_github_action.yml` found in this repository. The default settings will update your filters every week at 3 AM UTC. You can change this by editing the `schedule` property.
-5. Enable GitHub Actions in your repository settings.
+1. 建立一個新的空白私有儲存庫。不建議使用複製或公開儲存庫，但仍有支援——雖然腳本不會洩漏您的 API 金鑰，且 GitHub Actions 密鑰會自動從日誌中過濾，但小心駛得萬年船。如果您這麼做，**不需要使用「Sync fork」按鈕**！無論您複製的儲存庫中有什麼內容，GitHub Action 都會下載最新程式碼。
+2. 在您的儲存庫設定中建立以下 GitHub Actions 密鑰：
+   - `CLOUDFLARE_API_TOKEN`：您的 Cloudflare API 權杖，需具有 Zero Trust 讀取和編輯權限
+   - `CLOUDFLARE_ACCOUNT_ID`：您的 Cloudflare 帳戶 ID
+   - `CLOUDFLARE_LIST_ITEM_LIMIT`：您的 Cloudflare Zero Trust 方案允許的封鎖網域最大數量。預設為 300,000。如果您使用免費方案，此為選用項目。
+   - `PING_URL`：/選用/ GitHub Action 成功更新過濾清單後要 ping（使用 curl）的 HTTP(S) URL。適用於監控。
+   - `DISCORD_WEBHOOK_URL`：/選用/ 用於發送通知的 Discord（或類似服務）webhook URL。同樣適合監控使用。
+3. 若您需要，可在儲存庫設定中建立以下 GitHub Actions 變數：
+   - `ALLOWLIST_URLS`：使用您自己的白名單。每行一個 URL。若未提供此變數，將使用推薦的白名單。
+   - `BLOCKLIST_URLS`：使用您自己的封鎖清單。每行一個 URL。若未提供此變數，將使用推薦的封鎖清單。
+   - `BLOCK_PAGE_ENABLED`：若主機被封鎖，啟用顯示封鎖頁面。
+4. 在儲存庫中建立一個名為 `.github/workflows/main.yml` 的新檔案，內容為此儲存庫中的 `auto_update_github_action.yml`。預設設定會在每週 UTC 時間凌晨 3 點更新您的過濾清單。您可以透過編輯 `schedule` 屬性來變更此設定。
+5. 在您的儲存庫設定中啟用 GitHub Actions。
 
-### DNS setup for Cloudflare Gateway
+### Cloudflare Gateway 的 DNS 設定
 
-1. Go to your Cloudflare Zero Trust dashboard, and navigate to Networks -> Resolvers & Proxies -> DNS locations.
-2. Click on the default location or create one if it doesn't exist.
-3. Configure your router or device based on the provided DNS addresses.
+1. 前往您的 Cloudflare Zero Trust 儀表板，導航至 Networks -> Resolvers & Proxies -> DNS locations。
+2. 點擊預設位置，如果不存在則建立一個。
+3. 根據提供的 DNS 位址設定您的路由器或裝置。
 
-Alternatively, you can install the Cloudflare WARP client and log in to Zero Trust. This method proxies your traffic over Cloudflare servers, meaning it works similarly to a commercial VPN. You need to do this if you want to use the SNI-based filtering feature, as it requires Cloudflare to inspect your raw traffic (HTTPS remains encrypted if "TLS decryption" is disabled).
+或者，您可以安裝 Cloudflare WARP 用戶端並登入 Zero Trust。此方法透過 Cloudflare 伺服器代理您的流量，運作方式類似商業 VPN。如果您想使用 SNI 過濾功能，需要採用此方式，因為它需要 Cloudflare 檢查您的原始流量（如果停用「TLS 解密」，HTTPS 仍保持加密）。
 
-### Malware blocking
+### 惡意軟體封鎖
 
-The default filter lists are only optimized for ad & tracker blocking because Cloudflare Zero Trust itself comes with much more advanced security features. It's recommended that you create your own Cloudflare Gateway firewall policies that leverage those features on top of CGPS.
+預設的過濾清單僅針對廣告和追蹤器封鎖進行最佳化，因為 Cloudflare Zero Trust 本身提供了更進階的安全功能。建議您在 CGPS 之上建立自己的 Cloudflare Gateway 防火牆政策，以利用這些功能。
 
-### Dry runs
+### 模擬執行（Dry runs）
 
-To see if e.g. your filter lists are valid without actually changing anything in your Cloudflare account, you can set the `DRY_RUN` environment variable to 1, either in `.env` or the regular way. This will only print info such as the lists that would be created or the amount of duplicate domains to the console.
+若要檢查例如您的過濾清單是否有效，而不實際變更您 Cloudflare 帳戶中的任何內容，您可以將 `DRY_RUN` 環境變數設為 1，無論是在 `.env` 中還是以一般方式設定。這只會將資訊列印到主控台，例如將建立的清單或重複網域的數量。
 
-**Warning:** This currently only works for `cf_list_create.js`.
+**警告：** 目前這僅適用於 `cf_list_create.js`。
 
 <!-- markdownlint-disable-next-line MD026 -->
-## Why not...
+## 為什麼不選擇...
 
-### Pi-hole or Adguard Home?
+### Pi-hole 或 Adguard Home？
 
-- Complex setup to get it working outside your home
-- Requires a Raspberry Pi
+- 在家以外的地方使用設定複雜
+- 需要 Raspberry Pi
 
-### NextDNS?
+### NextDNS？
 
-- DNS filtering is disabled after 300,000 queries per month on the free plan
+- 免費方案每月超過 300,000 次查詢後會停用 DNS 過濾
 
-### Cloudflare Gateway?
+### Cloudflare Gateway？
 
-- Requires a valid payment card or PayPal account
-- Limit of 300k domains on the free plan
+- 需要有效的信用卡或 PayPal 帳戶
+- 免費方案限制 30 萬個網域
 
-### a hosts file?
+### hosts 檔案？
 
-- Potential performance issues, especially on [Windows](https://github.com/StevenBlack/hosts/issues/93)
-- No filter updates
-- Doesn't work for your mobile device
-- No statistics on how many domains you've blocked
+- 潛在的效能問題，特別是在 [Windows](https://github.com/StevenBlack/hosts/issues/93) 上
+- 無法更新過濾清單
+- 無法在行動裝置上使用
+- 沒有已封鎖網域數量的統計資料
 
-## License
+## 授權條款
 
-MIT License. See `LICENSE` for more information.
+MIT License。詳情請參閱 `LICENSE`。
